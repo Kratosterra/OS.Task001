@@ -9,9 +9,7 @@ int capitalizeWords(char *input, char *output)
     {
         if (isupper(input[inputIndex]))
         {
-            // copy the current capital letter and move to the next character
             output[outputIndex++] = input[inputIndex++];
-            // copy the rest of the word
             while (isalpha(input[inputIndex]))
             {
                 output[outputIndex++] = input[inputIndex++];

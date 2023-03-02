@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     char input[5000];
     char output[5000];
     int status;
-    pid_t child_id_input, child_id_task, child_id_output;
+    pid_t child_id_input, child_id_task;
     int input_to_task[2];
     int task_to_output[2];
     int fd_input;
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
     child_id_input = fork();
     if (child_id_input < 0)
     {
-        printf("Не удалось создать процесс ввода.\n");
+        printf("Не удалось создать процесс ввода/вывода.\n");
         exit(-1);
     }
     if (child_id_input != 0)
     {
-        printf("Cоздан процесс ввода!\n");
+        printf("Cоздан процесс ввода/вывода!\n");
         child_id_task = fork();
         if (child_id_task < 0)
         {
@@ -55,37 +55,6 @@ int main(int argc, char *argv[])
         if (child_id_input != 0 && child_id_task != 0)
         {
             printf("Cоздан процесс выполнения задачи!\n");
-            child_id_output = fork();
-            if (child_id_output < 0)
-            {
-                printf("Не удалось создать процесс вывода.\n");
-                exit(-1);
-            }
-            if (child_id_output != 0 && child_id_task != 0 && child_id_input != 0)
-            {
-                printf("Cоздан процесс вывода!\n");
-            }
-            else
-            {
-                printf("Процесс записи: Приступаем к чтению из неименованного канала!\n");
-                if (close(task_to_output[1]) < 0)
-                {
-                    printf("Процесс записи: Не могу закрыть неименованный канал для записи!\n");
-                    exit(-1);
-                }
-                status = read(task_to_output[0], output, buf);
-                printf("Процесс записи: удалось получить данные (%d): %s\n", status, output);
-                if (close(task_to_output[0]) < 0)
-                {
-                    printf("Процесс записи: Не могу закрыть неименованный канал для чтения!\n");
-                    exit(-1);
-                }
-                fd_output = open(output_file, O_CREAT | O_RDWR, 0777);
-                status = write(fd_output, output, status);
-                printf("Процесс записи: удалось записать данные (%d): %s\n", status, output);
-                close(fd_output);
-                close(task_to_output);
-            }
         }
         else
         {
@@ -123,30 +92,48 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Процесс ввода: Процесс ввода начинает считывание из файла %s!\n", input_file);
+        printf("Процесс ввода/вывода (ввод): Процесс ввода начинает считывание из файла %s!\n", input_file);
         fd_input = open(input_file, O_RDONLY);
         status = read(fd_input, input, buf);
         if (status < 0)
         {
-            printf("Процесс ввода: Не удалось считать входные данные из %s!\n", input_file);
+            printf("Процесс ввода/вывода (ввод): Не удалось считать входные данные из %s!\n", input_file);
             exit(-1);
         }
-        printf("Процесс ввода: удалось получить данные (%d): %s\n", status, input);
-        printf("Процесс ввода: Приступаем к записи в неименованный канал!\n");
+        printf("Процесс ввода/вывода (ввод): удалось получить данные (%d): %s\n", status, input);
+        printf("Процесс ввода/вывода (ввод): Приступаем к записи в неименованный канал!\n");
         if (close(input_to_task[0]) < 0)
         {
-            printf("Процесс ввода: Не могу закрыть неименованный канал для чтения!\n");
+            printf("Процесс ввода/вывода (ввод): Не могу закрыть неименованный канал для чтения!\n");
             exit(-1);
         }
         status = write(input_to_task[1], input, buf);
-        printf("Процесс ввода: удалось записать данные (%d): %s\n", status, input);
+        printf("Процесс ввода/вывода (ввод): удалось записать данные (%d): %s\n", status, input);
         if (close(input_to_task[1]) < 0)
         {
-            printf("Процесс ввода: Не могу закрыть неименованный канал для записи!\n");
+            printf("Процесс ввода/вывода (ввод): Не могу закрыть неименованный канал для записи!\n");
             exit(-1);
         }
-        printf("Процесс ввода: Завершил запись!\n");
+        printf("Процесс ввода/вывода (ввод): Завершил запись!\n");
         close(fd_input);
+        printf("Процесс ввода/вывода (запись): Приступаем к чтению из неименованного канала!\n");
+        if (close(task_to_output[1]) < 0)
+        {
+            printf("Процесс ввода/вывода (запись): Не могу закрыть неименованный канал для записи!\n");
+            exit(-1);
+        }
+        status = read(task_to_output[0], output, buf);
+        printf("Процесс ввода/вывода (запись): удалось получить данные (%d): %s\n", status, output);
+        if (close(task_to_output[0]) < 0)
+        {
+            printf("Процесс ввода/вывода (запись): Не могу закрыть неименованный канал для чтения!\n");
+            exit(-1);
+        }
+        fd_output = open(output_file, O_CREAT | O_RDWR, 0777);
+        status = write(fd_output, output, status);
+        printf("Процесс ввода/вывода (запись): удалось записать данные (%d): %s\n", status, output);
+        close(fd_output);
+        close(task_to_output);
     }
     return 0;
 }
