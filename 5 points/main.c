@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
     char output[5000];
     int status;
     pid_t child_id_input, child_id_task, child_id_output;
-    char input_to_task[] = "input_to_task.fifo";
-    char task_to_output[] = "task_to_output.fifo";
+    char input_to_task[] = "./tmp/input_to_task.fifo";
+    char task_to_output[] = "./tmp/task_to_output.fifo";
     int input_task_fd;
     int task_output_fd;
     int fd_input;
