@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
     char output[5000];
     int status;
     pid_t child_id_input, child_id_task;
-    char input_to_task[] = "./tmp/input_to_task.fifo";
-    char task_to_output[] = "./tmp/task_to_output.fifo";
+    char input_to_task[] = "input_to_task.fifo";
+    char task_to_output[] = "task_to_output.fifo";
     int input_task_fd;
     int task_output_fd;
     int fd_input;
@@ -57,11 +57,6 @@ int main(int argc, char *argv[])
         {
             printf("Процесс решения: Приступаем к чтению из именованного канала!\n");
             input_task_fd = open(input_to_task, O_RDONLY);
-            // if (input_task_fd = open(input_to_task, O_RDONLY) < 0)
-            //{
-            //     printf("Процесс решения: Не могу открыть именованный канал для чтения!\n");
-            //     exit(-1);
-            // }
             status = read(input_task_fd, input, buf);
             printf("Процесс решения: удалось получить данные (%d): %s\n", status, input);
             if (close(input_task_fd) < 0)
@@ -73,11 +68,6 @@ int main(int argc, char *argv[])
             printf("Процесс решения: Завершил решение. Ответ: %s!\n", output);
             printf("Процесс решения: Приступаю к записи в новый именованный канал для записи ответа\n");
             task_output_fd = open(task_to_output, O_WRONLY);
-            // if (task_output_fd = open(task_to_output, O_WRONLY) < 0)
-            //{
-            //     printf("Процесс ввода: Не могу открыть именованный канал для записи!\n");
-            //     exit(-1);
-            // }
             status = write(task_output_fd, output, size_of_output);
             printf("Процесс решения: удалось записать данные (%d): %s\n", status, output);
             if (close(task_output_fd) < 0)
@@ -86,6 +76,8 @@ int main(int argc, char *argv[])
                 exit(-1);
             }
             printf("Процесс решения: Завершил запись!\n");
+            unlink(task_to_output);
+            unlink(input_to_task);
         }
     }
     else
@@ -101,11 +93,6 @@ int main(int argc, char *argv[])
         printf("Процесс ввода/вывода (ввод): удалось получить данные (%d): %s\n", status, input);
         printf("Процесс ввода/вывода (ввод): Приступаем к записи в именованный канал!\n");
         input_task_fd = open(input_to_task, O_WRONLY);
-        // if (input_task_fd = open(input_to_task, O_WRONLY) < 0)
-        //{
-        //     printf("Процесс ввода: Не могу открыть именованный канал для записи!\n");
-        //    exit(-1);
-        //}
         status = write(input_task_fd, input, buf);
         printf("Процесс ввода/вывода (ввод): удалось записать данные (%d): %s\n", status, input);
         if (close(input_task_fd) < 0)
@@ -117,11 +104,6 @@ int main(int argc, char *argv[])
         close(fd_input);
         printf("Процесс ввода/вывода (запись): Приступаем к чтению из именованного канала!\n");
         task_output_fd = open(task_to_output, O_RDONLY);
-        // if (task_output_fd = open(task_to_output, O_RDONLY) < 0)
-        //{
-        //     printf("Процесс записи: Не могу открыть именованный канал для чтения!\n");
-        //     exit(-1);
-        // }
         status = read(task_output_fd, output, buf);
         printf("Процесс ввода/вывода (запись): удалось получить данные (%d): %s\n", status, output);
         if (close(task_output_fd) < 0)
@@ -133,6 +115,8 @@ int main(int argc, char *argv[])
         status = write(fd_output, output, status);
         printf("Процесс ввода/вывода (запись): удалось записать данные (%d): %s\n", status, output);
         close(fd_output);
+        unlink(task_to_output);
+        unlink(input_to_task);
     }
     return 0;
 }
